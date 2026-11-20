@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FocusMode</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inconsolata:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="wrap">
+
+    <div class="top-bar">
+      <div class="logo">Focus<em>Mode</em></div>
+      <div class="top-right">
+        <span id="clockEl"></span>
+        <button class="theme-toggle" onclick="toggleTheme()">&#9681; theme</button>
+      </div>
+    </div>
+
+    <div class="quote-strip" id="quoteEl">loading...</div>
+
+    <div class="mode-row">
+      <button class="mode-btn active" id="tabFocus" onclick="switchMode('focus')">Focus</button>
+      <button class="mode-btn" id="tabShort" onclick="switchMode('short')">Short break</button>
+      <button class="mode-btn" id="tabLong" onclick="switchMode('long')">Long break</button>
+    </div>
+
+    <div class="timer-block">
+      <div class="timer-num" id="timerEl">25:00</div>
+      <div class="timer-sub" id="timerSub">focus session</div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <div class="ctrl-row">
+      <button class="btn-ghost" onclick="resetTimer()">Reset</button>
+      <button class="btn-start" id="btnStart" onclick="toggleTimer()">Start</button>
+      <button class="btn-ghost" onclick="skipSession()">Skip</button>
+    </div>
+
+    <hr class="divider">
+
+    <div class="section">
+      <div class="section-label">
+        Tasks
+        <span id="taskCount">0 / 0</span>
+      </div>
+      <div class="task-row">
+        <input
+          class="task-field"
+          id="taskField"
+          type="text"
+          placeholder="what are you working on?"
+          maxlength="60"
+          onkeydown="if(event.key==='Enter') addTask()"
+        >
+        <button class="btn-add-task" onclick="addTask()">+</button>
+      </div>
+      <div class="task-list" id="taskList">
+        <div class="empty-msg" id="emptyMsg">no tasks yet</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="section">
+      <div class="section-label">Session streak today</div>
+      <div class="streak-row" id="streakRow"></div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="section">
+      <div class="section-label">Ambient</div>
+      <div class="sound-row">
+        <button class="snd-btn active" id="sndOff"   onclick="setSound('off')">&#9679; off</button>
+        <button class="snd-btn"        id="sndLofi"  onclick="setSound('lofi')">&#9835; lo-fi</button>
+        <button class="snd-btn"        id="sndRain"  onclick="setSound('rain')">&#11835; rain</button>
+        <button class="snd-btn"        id="sndWhite" onclick="setSound('white')">&#8767; white noise</button>
+        <button class="snd-btn"        id="sndFire"  onclick="setSound('fire')">&#9632; fire</button>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="section">
+      <div class="section-label">Durations (min)</div>
+      <div class="settings-grid">
+        <div class="set-item">
+          <label for="setFocus">Focus</label>
+          <input type="number" id="setFocus" value="25" min="1" max="90" onchange="applySettings()">
+        </div>
+        <div class="set-item">
+          <label for="setShort">Short break</label>
+          <input type="number" id="setShort" value="5" min="1" max="30" onchange="applySettings()">
+        </div>
+        <div class="set-item">
+          <label for="setLong">Long break</label>
+          <input type="number" id="setLong" value="15" min="1" max="60" onchange="applySettings()">
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="section">
+      <div class="section-label">Today</div>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-n" id="sSessions">0</div>
+          <div class="stat-l">Sessions</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n" id="sTasks">0</div>
+          <div class="stat-l">Tasks done</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n" id="sMinutes">0</div>
+          <div class="stat-l">Min focused</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="toast" id="toastEl"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
