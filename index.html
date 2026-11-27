@@ -2,22 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>FocusMode</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inconsolata:wght@300;400;500&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#0b0b0c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="wrap">
+  <main class="wrap">
 
-    <div class="top-bar">
-      <div class="logo">Focus<em>Mode</em></div>
-      <div class="top-right">
-        <span id="clockEl"></span>
-        <button class="theme-toggle" onclick="toggleTheme()">&#9681; theme</button>
-      </div>
-    </div>
+    <header class="top-bar">
+      <div class="logo">FocusMode</div>
+      <span id="clockEl"></span>
+    </header>
 
     <div class="quote-strip" id="quoteEl">loading...</div>
 
@@ -27,13 +33,13 @@
       <button class="mode-btn" id="tabLong" onclick="switchMode('long')">Long break</button>
     </div>
 
-    <div class="timer-block">
+    <section class="timer-block">
       <div class="timer-num" id="timerEl">25:00</div>
       <div class="timer-sub" id="timerSub">focus session</div>
       <div class="progress-track">
         <div class="progress-fill" id="progressFill"></div>
       </div>
-    </div>
+    </section>
 
     <div class="ctrl-row">
       <button class="btn-ghost" onclick="resetTimer()">Reset</button>
@@ -41,73 +47,64 @@
       <button class="btn-ghost" onclick="skipSession()">Skip</button>
     </div>
 
-    <hr class="divider">
-
-    <div class="section">
+    <section class="section">
       <div class="section-label">
-        Tasks
-        <span id="taskCount">0 / 0</span>
+        <span>Tasks</span>
+        <span class="count" id="taskCount">0 / 0</span>
       </div>
       <div class="task-row">
         <input
           class="task-field"
           id="taskField"
           type="text"
-          placeholder="what are you working on?"
+          placeholder="What are you working on?"
           maxlength="60"
+          enterkeyhint="done"
           onkeydown="if(event.key==='Enter') addTask()"
         >
-        <button class="btn-add-task" onclick="addTask()">+</button>
+        <button class="btn-add-task" onclick="addTask()" aria-label="Add task">+</button>
       </div>
       <div class="task-list" id="taskList">
-        <div class="empty-msg" id="emptyMsg">no tasks yet</div>
+        <div class="empty-msg" id="emptyMsg">No tasks yet</div>
       </div>
-    </div>
+    </section>
 
-    <hr class="divider">
-
-    <div class="section">
-      <div class="section-label">Session streak today</div>
+    <section class="section">
+      <div class="section-label"><span>Session streak</span></div>
       <div class="streak-row" id="streakRow"></div>
-    </div>
+    </section>
 
-    <hr class="divider">
-
-    <div class="section">
-      <div class="section-label">Ambient</div>
+    <section class="section">
+      <div class="section-label"><span>Ambient</span></div>
       <div class="sound-row">
-        <button class="snd-btn active" id="sndOff"   onclick="setSound('off')">&#9679; off</button>
-        <button class="snd-btn"        id="sndLofi"  onclick="setSound('lofi')">&#9835; lo-fi</button>
-        <button class="snd-btn"        id="sndRain"  onclick="setSound('rain')">&#11835; rain</button>
-        <button class="snd-btn"        id="sndWhite" onclick="setSound('white')">&#8767; white noise</button>
-        <button class="snd-btn"        id="sndFire"  onclick="setSound('fire')">&#9632; fire</button>
+        <button class="snd-btn active" id="sndOff"   onclick="setSound('off')">Off</button>
+        <button class="snd-btn"        id="sndLofi"  onclick="setSound('lofi')">Lo-fi</button>
+        <button class="snd-btn"        id="sndRain"  onclick="setSound('rain')">Rain</button>
+        <button class="snd-btn"        id="sndWhite" onclick="setSound('white')">White noise</button>
+        <button class="snd-btn"        id="sndFire"  onclick="setSound('fire')">Fire</button>
       </div>
-    </div>
+    </section>
 
-    <hr class="divider">
-
-    <div class="section">
-      <div class="section-label">Durations (min)</div>
+    <section class="section">
+      <div class="section-label"><span>Durations (min)</span></div>
       <div class="settings-grid">
         <div class="set-item">
           <label for="setFocus">Focus</label>
-          <input type="number" id="setFocus" value="25" min="1" max="90" onchange="applySettings()">
+          <input type="number" inputmode="numeric" id="setFocus" value="25" min="1" max="90" onchange="applySettings()">
         </div>
         <div class="set-item">
-          <label for="setShort">Short break</label>
-          <input type="number" id="setShort" value="5" min="1" max="30" onchange="applySettings()">
+          <label for="setShort">Short</label>
+          <input type="number" inputmode="numeric" id="setShort" value="5" min="1" max="30" onchange="applySettings()">
         </div>
         <div class="set-item">
-          <label for="setLong">Long break</label>
-          <input type="number" id="setLong" value="15" min="1" max="60" onchange="applySettings()">
+          <label for="setLong">Long</label>
+          <input type="number" inputmode="numeric" id="setLong" value="15" min="1" max="60" onchange="applySettings()">
         </div>
       </div>
-    </div>
+    </section>
 
-    <hr class="divider">
-
-    <div class="section">
-      <div class="section-label">Today</div>
+    <section class="section">
+      <div class="section-label"><span>Today</span></div>
       <div class="stats-row">
         <div class="stat">
           <div class="stat-n" id="sSessions">0</div>
@@ -119,12 +116,12 @@
         </div>
         <div class="stat">
           <div class="stat-n" id="sMinutes">0</div>
-          <div class="stat-l">Min focused</div>
+          <div class="stat-l">Minutes</div>
         </div>
       </div>
-    </div>
+    </section>
 
-  </div>
+  </main>
 
   <div class="toast" id="toastEl"></div>
 

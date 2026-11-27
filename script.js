@@ -30,7 +30,7 @@ let tasks      = [];
 let sound      = 'off';
 let audioCtx   = null;
 let soundNodes = [];
-let isDark     = false;
+let endAt      = 0;
 
 function load() {
   const today = new Date().toDateString();
@@ -44,9 +44,6 @@ function load() {
   }
 
   tasks  = d.tasks || [];
-  isDark = d.dark  || false;
-
-  if (isDark) document.body.classList.add('dark');
   renderAll();
 }
 
@@ -57,8 +54,7 @@ function save() {
     tasksDone,
     minFocused,
     cycleCount,
-    tasks,
-    dark: isDark
+    tasks
   }));
 }
 
@@ -76,12 +72,6 @@ function tickClock() {
   document.getElementById('clockEl').textContent =
     n.getHours().toString().padStart(2, '0') + ':' +
     n.getMinutes().toString().padStart(2, '0');
-}
-
-function toggleTheme() {
-  isDark = !isDark;
-  document.body.classList.toggle('dark', isDark);
-  save();
 }
 
 function switchMode(m) {
@@ -128,12 +118,14 @@ function toggleTimer() {
 
 function start() {
   if (remaining <= 0) remaining = total;
+  endAt = Date.now() + remaining * 1000;
   running = true;
   document.getElementById('btnStart').textContent = 'Pause';
   interval = setInterval(tick, 1000);
 }
 
 function pause() {
+  if (running) remaining = Math.max(0, Math.round((endAt - Date.now()) / 1000));
   running = false;
   clearInterval(interval);
   document.getElementById('btnStart').textContent = 'Resume';
@@ -153,14 +145,11 @@ function skipSession() {
 }
 
 function tick() {
-  if (remaining > 0) {
-    remaining--;
-    updateDisplay();
-    updateBar();
-    save();
-  } else {
-    onEnd();
-  }
+  remaining = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+  updateDisplay();
+  updateBar();
+  save();
+  if (remaining <= 0) onEnd();
 }
 
 function onEnd() {
@@ -239,6 +228,8 @@ function renderTasks() {
   const empty = document.getElementById('emptyMsg');
 
   list.innerHTML = '';
+  document.getElementById('taskCount').textContent =
+    tasks.filter(t => t.done).length + ' / ' + tasks.length;
 
   if (!tasks.length) {
     list.appendChild(empty);
@@ -247,9 +238,6 @@ function renderTasks() {
   }
 
   empty.style.display = 'none';
-
-  const doneCount = tasks.filter(t => t.done).length;
-  document.getElementById('taskCount').textContent = doneCount + ' / ' + tasks.length;
 
   tasks.forEach(t => {
     const row = document.createElement('div');
@@ -497,3 +485,13 @@ pickQuote();
 tickClock();
 setInterval(tickClock, 15000);
 setInterval(() => { if (!running) pickQuote(); }, 60000);
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && running) tick();
+});
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(e => console.error('SW error:', e));
+  });
+}
