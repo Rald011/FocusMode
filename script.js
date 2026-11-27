@@ -330,29 +330,49 @@ function setSound(type) {
     const data = buf.getChannelData(0);
 
     if (type === 'lofi') {
-      let b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0;
+      // vinyl hiss + crackle (high-passed so phone speakers can play it)
       for (let i = 0; i < len; i++) {
-        const w = Math.random() * 2 - 1;
-        b0 = 0.99886*b0 + w*0.0555179;
-        b1 = 0.99332*b1 + w*0.0750759;
-        b2 = 0.96900*b2 + w*0.1538520;
-        b3 = 0.86650*b3 + w*0.3104856;
-        b4 = 0.55000*b4 + w*0.5329522;
-        b5 = -0.7616*b5 - w*0.0168980;
-        data[i] = (b0+b1+b2+b3+b4+b5+b6 + w*0.5362) * 0.045;
-        b6 = w * 0.115926;
+        let v = (Math.random() * 2 - 1) * 0.05;
+        if (Math.random() < 0.0004) v += (Math.random() * 2 - 1) * 0.9;
+        data[i] = v;
       }
-      const src = ctx.createBufferSource();
-      src.buffer = buf;
-      src.loop   = true;
-      const f    = ctx.createBiquadFilter();
-      f.type     = 'lowpass';
-      f.frequency.value = 450;
-      const g    = ctx.createGain();
-      g.gain.value = 0.5;
-      src.connect(f); f.connect(g); g.connect(ctx.destination);
-      src.start();
-      soundNodes.push(src);
+      const noise = ctx.createBufferSource();
+      noise.buffer = buf;
+      noise.loop   = true;
+      const nf = ctx.createBiquadFilter();
+      nf.type = 'highpass';
+      nf.frequency.value = 800;
+      const ng = ctx.createGain();
+      ng.gain.value = 0.6;
+      noise.connect(nf); nf.connect(ng); ng.connect(ctx.destination);
+      noise.start();
+      soundNodes.push(noise);
+
+      // warm Cmaj7 pad with slow tremolo
+      const pad = ctx.createGain();
+      pad.gain.value = 0.10;
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 1400;
+      lp.connect(pad); pad.connect(ctx.destination);
+      [261.63, 329.63, 392.00, 493.88, 523.25, 659.25].forEach((freq, i) => {
+        const o  = ctx.createOscillator();
+        const og = ctx.createGain();
+        o.type = 'triangle';
+        o.frequency.value = freq;
+        o.detune.value = (i % 2 ? 6 : -6);
+        og.gain.value = 0.16;
+        o.connect(og); og.connect(lp);
+        o.start();
+        soundNodes.push(o);
+      });
+      const lfo = ctx.createOscillator();
+      const lg  = ctx.createGain();
+      lfo.frequency.value = 0.25;
+      lg.gain.value = 0.04;
+      lfo.connect(lg); lg.connect(pad.gain);
+      lfo.start();
+      soundNodes.push(lfo);
 
     } else if (type === 'rain') {
       for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
@@ -381,20 +401,52 @@ function setSound(type) {
       soundNodes.push(src);
 
     } else if (type === 'fire') {
+      // low rumble (brown noise, normalized so it is actually loud enough)
+      let last = 0, peak = 0;
       for (let i = 0; i < len; i++) {
-        data[i] = (Math.random() * 2 - 1) * (0.5 + 0.5 * Math.sin(i / sr * 0.7));
+        last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02;
+        data[i] = last;
+        if (Math.abs(last) > peak) peak = Math.abs(last);
+      }
+      for (let i = 0; i < len; i++) {
+        data[i] = (data[i] / peak) * (0.6 + 0.4 * Math.sin(i / sr * 1.3));
       }
       const src = ctx.createBufferSource();
       src.buffer = buf;
       src.loop   = true;
-      const f    = ctx.createBiquadFilter();
-      f.type     = 'lowpass';
-      f.frequency.value = 320;
-      const g    = ctx.createGain();
-      g.gain.value = 0.22;
+      const f = ctx.createBiquadFilter();
+      f.type = 'lowpass';
+      f.frequency.value = 900;
+      const g = ctx.createGain();
+      g.gain.value = 0.7;
       src.connect(f); f.connect(g); g.connect(ctx.destination);
       src.start();
       soundNodes.push(src);
+
+      // crackles and pops
+      const cbuf = ctx.createBuffer(1, len, sr);
+      const cd   = cbuf.getChannelData(0);
+      for (let i = 0; i < len; i++) {
+        if (Math.random() < 0.0012) {
+          const amp = 0.4 + Math.random() * 0.6;
+          const dur = Math.floor(sr * (0.002 + Math.random() * 0.01));
+          for (let j = 0; j < dur && i + j < len; j++) {
+            cd[i + j] += (Math.random() * 2 - 1) * amp * Math.exp(-j / (dur / 4));
+          }
+        }
+      }
+      const csrc = ctx.createBufferSource();
+      csrc.buffer = cbuf;
+      csrc.loop   = true;
+      const cf = ctx.createBiquadFilter();
+      cf.type = 'bandpass';
+      cf.frequency.value = 2200;
+      cf.Q.value = 0.7;
+      const cg = ctx.createGain();
+      cg.gain.value = 0.9;
+      csrc.connect(cf); cf.connect(cg); cg.connect(ctx.destination);
+      csrc.start();
+      soundNodes.push(csrc);
     }
 
   } catch (e) {
